@@ -48,26 +48,15 @@ class App extends React.Component<{} | undefined, State> {
 
   startRecording = () => {
     this.recognition.onResult((result, isFinal) => {
-      // if (isFinal) {
-      //   this.processor.process(result);
-      // }
-      // const newResult = this.state.result + result;
       const index = this.state.questionaire.selectedQuestionIndex;
       const answer = answers[index];
       answers[index] = answer ? answer + ' ' + result : '' + result;
-      // let answer = answers[this.state.questionaire.selectedQuestionIndex];
-      // answers[this.state.selectedQuestionIndex] = answer
-      //   ? answer + ' ' + result
-      //   : '' + result;
-      // this.setState({ answers: answers });
+
       let questionaire = this.state.questionaire;
       questionaire.answers = answers;
       this.setState({
         questionaire: questionaire
       });
-      // this.setState({
-      //   questionaire: { answers: answers, selectedQuestionIndex: index }
-      // });
     });
     this.recognition.onEnd(() => {
       this.setState({ recording: false });
@@ -96,11 +85,13 @@ class App extends React.Component<{} | undefined, State> {
   render() {
     return (
       <div>
-        <header className="App-header">
-          Voice Interview Demo (please turn on your speaker)
-        </header>
+        <header className="App-header">Voice Interview Demo</header>
         <div className="App">
-          {this.state.recording ? 'Speaking...' : 'Please click question below'}
+          <ul>
+            <li>1. please turn on your speaker</li>
+            <li>2. click question and wait for your speaking</li>
+          </ul>
+          {this.state.recording ? '[Please Speaking...]' : '[Please wait]'}
           <QuestionList
             questionaire={this.state.questionaire}
             onClickQuestion={this.onClickQuestion}
