@@ -2,13 +2,17 @@
   "name": "my-app",
   "version": "0.1.0",
   "private": true,
+  "homepage": "https://boska.github.com/react-webspeechapi-voice-poc",
   "dependencies": {
     "@types/webspeechapi": "^0.0.29",
+    "gh-pages": "^2.0.0",
     "react": "^16.2.0",
     "react-dom": "^16.2.0",
     "react-scripts-ts": "2.13.0"
   },
   "scripts": {
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build",
     "start": "react-scripts-ts start",
     "build": "react-scripts-ts build",
     "test": "react-scripts-ts test --env=jsdom",
