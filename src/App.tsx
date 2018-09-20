@@ -1,47 +1,73 @@
 import * as React from 'react';
 import './App.css';
-import TodoList from './TodoList';
 import SpeechRecognitionService from './speechRecognitionService';
 import SpeechProcessorService from './speechProcessorService';
+import QuestionList from './QuestionList';
+import Questionaire from './Questionaire';
 
 interface State {
   recording: boolean;
-  result?: string;
-  todos: Todo[];
+  questionaire: Questionaire;
 }
 
-export interface Todo {
-  id: number;
-  text: string;
-  completed: boolean;
-}
+const questions = [
+  'Please describe your role?',
+  'What functions are you responsible for?',
+  'Is that entire role?',
+  'Is that everything?'
+];
 
-let todoId = 0;
+let answers: string[] = [];
 
 class App extends React.Component<{} | undefined, State> {
   recognition: SpeechRecognitionService;
   processor: SpeechProcessorService;
-  input: HTMLInputElement | null;
+  // input: HTMLInputElement | null;
 
   constructor(props?: {}) {
     super(props);
-    this.state = { recording: false, todos: [] };
+    this.state = {
+      recording: false,
+      questionaire: {
+        questions: questions,
+        answers: answers,
+        selectedQuestionIndex: 0
+      }
+    };
     this.recognition = new SpeechRecognitionService();
-    this.processor = new SpeechProcessorService(this.state.todos);
-    this.processor.addTodoHandler = this.addTodo;
-    this.processor.toggleTodoHandler = this.toggle;
+
+    this.processor = new SpeechProcessorService(questions);
+    this.processor.onSpeakEnd = this.onSpeakEnd;
   }
 
-  componentDidMount() {
-    this.input!.focus();
+  onSpeakEnd = () => {
+    if (!this.state.recording) {
+      this.startRecording();
+    }
   }
 
   startRecording = () => {
     this.recognition.onResult((result, isFinal) => {
-      if (isFinal) {
-        this.processor.process(result);
-      }
-      this.setState({ result });
+      // if (isFinal) {
+      //   this.processor.process(result);
+      // }
+      // const newResult = this.state.result + result;
+      const index = this.state.questionaire.selectedQuestionIndex;
+      const answer = answers[index];
+      answers[index] = answer ? answer + ' ' + result : '' + result;
+      // let answer = answers[this.state.questionaire.selectedQuestionIndex];
+      // answers[this.state.selectedQuestionIndex] = answer
+      //   ? answer + ' ' + result
+      //   : '' + result;
+      // this.setState({ answers: answers });
+      let questionaire = this.state.questionaire;
+      questionaire.answers = answers;
+      this.setState({
+        questionaire: questionaire
+      });
+      // this.setState({
+      //   questionaire: { answers: answers, selectedQuestionIndex: index }
+      // });
     });
     this.recognition.onEnd(() => {
       this.setState({ recording: false });
@@ -59,40 +85,26 @@ class App extends React.Component<{} | undefined, State> {
     this.state.recording ? this.stopRecording() : this.startRecording();
   }
 
-  addTodo = (text: string) => {
-    const todo = { id: todoId++, text: text, completed: false };
-    const todos = [...this.state.todos, todo];
-    this.setState({ todos });
-    this.input!.value = '';
-    this.input!.focus();
-    return todos;
-  }
-
-  toggle = (updatedTodo: Todo) => {
-    const updatedTodos = this.state.todos.map(todo => {
-      return (todo !== updatedTodo) ? todo : {
-        ...todo,
-        completed: !todo.completed,
-      };
-    });
-    this.setState({ todos: updatedTodos });
-    return updatedTodos;
+  onClickQuestion = (index: number) => {
+    this.stopRecording();
+    this.processor.speakQuestions(index);
+    let questionaire = this.state.questionaire;
+    questionaire.selectedQuestionIndex = index;
+    this.setState({ questionaire: questionaire });
   }
 
   render() {
     return (
       <div>
         <header className="App-header">
-        Voice todos
+          Voice Interview Demo (please turn on your speaker)
         </header>
         <div className="App">
-          <button onClick={this.toggleRecording}>{this.state.recording ? 'Stop' : 'Start'} recording</button>
-          {this.state.result && <p>Transcript: {this.state.result}</p>}
-          <form onSubmit={event => { this.addTodo(this.input!.value); event.preventDefault(); }}>
-            <input ref={node => this.input = node} />
-            <button type="submit">Add</button>
-          </form>
-          <TodoList todos={this.state.todos} onToggle={this.toggle} />
+          {this.state.recording ? 'Speaking...' : 'Please click question below'}
+          <QuestionList
+            questionaire={this.state.questionaire}
+            onClickQuestion={this.onClickQuestion}
+          />
         </div>
       </div>
     );

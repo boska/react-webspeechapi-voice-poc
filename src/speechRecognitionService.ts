@@ -16,7 +16,7 @@ export default class SpeechRecognitionService {
       }
       const lastResult = event.results[event.results.length - 1];
       if (!lastResult.isFinal) {
-        callback('...', false);
+        callback('', false);
         return;
       }
       callback(lastResult[0].transcript, true);
